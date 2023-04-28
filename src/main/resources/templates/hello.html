@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/5.9.2/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.9.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.9.2/firebase-messaging.js"></script>
+push page</br>
+<button onclick="doAction()">click me</button>
+<button onclick="doSend()">send me</button>
+
+<script>
+    //메시지 전송 메서드
+    function doSend(){
+        fetch("/fcm", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                "title" : "yay",
+                "body" : "loader"
+            }),
+        }).then((response) => console.log(response));
+    }
+
+    //서버에 등록. 해제 요청은 없으므로 수동으로 제거해야함.
+    //크롬 설정에서 해제, 서버 재시작시 삭제됨.
+    //크롬 설정 없이 click me를 누르면 서버에 토큰을 등록.
+    function doAction() {
+        let firebaseConfig = {
+            //fcm 설정코드
+        };
+
+        var userToken;
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Show Notification
+        // 메시지 기능 활성화를 알림
+        const messaging = firebase.messaging();
+        // RequestPermission 첫 어플 시작 시 알림 허용 or 불허를 사용자에게 안내합니다.
+        // 허용하지 않을 시 알람 메시지는 가지 않습니다.
+        messaging.requestPermission()
+            .then(function() {
+                // 알람이 허용되었을 때 토큰을 반환합니다.
+                // 해당 토큰을 통해 FCM 특정 사용자에게 메시지를 보낼 수 있습니다.
+
+                token = messaging.getToken();
+                return token;
+            })
+            .then(async function(token) {
+                console.log("token");
+                console.log(token);
+
+                //서버로 토큰 값을 전송
+                fetch("/token", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        userToken: token
+                    }),
+                }).then((response) => console.log(response));
+                console.log("token pushed");
+                // 해당 onMessage는 데이터메시지로, 포그라운드인 상태에서
+                // FCM 메시지를 전송하는 경우 콘솔에 표기하도록 작성된 코드입니다.
+
+                messaging.onMessage(payload => {
+                    console.log(payload);
+
+                })
+            })
+
+        //포그라운드 상태의 메시지를 팝업으로 띄우는 콜백 메서드
+        firebase.messaging().onMessage(function(payload) {
+            var options = {
+                body : payload.notification.body
+                , title : payload.notification.title
+            }
+            var notification = new Notification(payload.notification.title, options);
+            notification.onclick= function(event){
+                event.preventDefault();
+            }
+        });
+
+    }
+</script>
+</body>
+</html>
