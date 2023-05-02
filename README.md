@@ -9,3 +9,5 @@ firebase-messaging-sw.js의 firebaseApp 설정부분
 
 주의 : firebase-messaging-sw.js는 반드시 static의 바로 아래 위치해야함.
       프로젝트 빌드시 root context는 반드시 "/"여야함.
+
+현재 버전에서 외부 경로로 알림기능 동작하지 않음. 수정 필요.
